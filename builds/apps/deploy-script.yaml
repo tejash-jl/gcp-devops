@@ -77,12 +77,35 @@ steps:
       cp ./deployments/scripts/registry-init.sh sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
       cp ./deployments/schemas/* sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts/charts/registry/schemas
       cd sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts
+      cp .env sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling/helm_charts/
       sh ./registry-init.sh ${_DOMAIN_} ${_SECRET_NAME_} ${_DB_NAME_}
 - name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
   id: 'install-helm-chart'
-  entrypoint: 'helm'
+  entrypoint: 'bash'
   dir: 'sunbird-rc/sunbird-rc-devops/deploy-as-code/helm/v2/registryAndCredentialling'
-  args: ['upgrade', '--install', '-n=registry', 'registry', 'helm_charts', '--create-namespace', '--set', 'global.host=${_DOMAIN_}', '--set', 'global.registry.search_provider=dev.sunbirdrc.registry.service.NativeSearchService', '--set', 'global.registry.keycloak_user_set_password=true', '--set', 'global.database.user=registry', '--set-json', 'registry.ingress.annotations={"kubernetes.io/ingress.class": "nginx", "nginx.ingress.kubernetes.io/rewrite-target": "/$2", "cert-manager.io/issuer": "letsencrypt", "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"}', '--set-json', 'registry.ingress.tls=[{"hosts": ["${_DOMAIN_}"], "secretName": "registry-tls"}]' ]
+  args:
+    - -c
+    - |
+      export $(grep -v '^#' .env | xargs -d '\n')
+      helm install -n registry registry helm_charts --create-namespace \
+        --set global.host=${_DOMAIN_} \
+        --set global.registry.search_provider=dev.sunbirdrc.registry.service.NativeSearchService \
+        --set global.registry.keycloak_user_set_password=true --set global.database.user=registry \
+        --set-json registry.ingress.annotations='{"kubernetes.io/ingress.class": "nginx", "nginx.ingress.kubernetes.io/rewrite-target": "/$2", "cert-manager.io/issuer": "letsencrypt", "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"}' \
+        --set-json registry.ingress.tls='[{"hosts": ["${_DOMAIN_}"], "secretName": "registry-tls"}]' \
+        --set certificate-api.image.tag=$certificate-api-version \
+        --set claim-ms.image.tag=$claim-ms-version \
+        --set context-proxy-service.image.tag=$context-proxy-service-version \
+        --set credential-schema-service.image.tag=$credential-schema-service-version \
+        --set certificate-signer.image.tag=$certificate-signer-version \
+        --set credentials-service.image.tag=$credentials-service-version \
+        --set encryption-service.image.tag=$encryption-service-version \
+        --set id-gen-service.image.tag=$id-gen-service-version \
+        --set identity-service.image.tag=$identity-service-version \
+        --set keycloak-service.image.tag=$keycloak-service-version \
+        --set notification-ms.image.tag=$notification-ms-version \
+        --set public-key-service.image.tag=$public-key-service-version \
+        --set registry.image.tag=$registry-version
   waitFor: 'helm-preconfig'
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   id: 'keycloak-setup'
