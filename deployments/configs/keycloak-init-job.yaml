@@ -26,7 +26,7 @@ spec:
                --data-urlencode "password=$ADMIN_PASSWORD" \
                --data-urlencode "grant_type=password" |  jq -r ".access_token")
               echo -n "$ADMIN_SECRET" | xargs -I '{}' sed -i -E 's@"secret": ".*",@"secret": "{}",@' realm-export.json
-              jq --arg domain https://DOMAIN_VALUE/auth '.attributes += {"frontendUrl": $domain}'  realm-export.json | sponge realm-export.json
+              jq --arg domain DOMAIN_VALUE/auth '.attributes += {"frontendUrl": $domain}'  realm-export.json | sponge realm-export.json
               curl --location "http://registry-keycloak-service:8080/auth/admin/realms" --header "Authorization: Bearer ${admin_token}" --data "@./realm-export.json" --header 'Content-Type: application/json'
           env:
             - name: ADMIN_PASSWORD
