@@ -179,7 +179,7 @@ _SERVICE_ACCOUNT_=$GSA,_LOG_BUCKET_=$PROJECT_ID-tfs-stg
 #### The PROJECT_ID,GSA needs to be updated in the command below.
 /*
 gcloud builds submit --config="./builds/infra/destroy-script.yaml" \
----project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
+--project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\
 _SERVICE_ACCOUNT_=$GSA,_LOG_BUCKET_=$PROJECT_ID-tfs-stg
 */
 ```
