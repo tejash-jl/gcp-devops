@@ -17,3 +17,4 @@ echo -n "$admin_secret" | base64 -w 0 | xargs -I '{}' sed -i -E 's@KEYCLOAK_ADMI
 kubectl create secret generic keycloak --from-literal=password="$keycloak_admin_password" --from-literal=secret="$admin_secret"
 
 echo -n $1 | xargs -I '{}' sed -i -E 's@sunbird_sso_url: .*@sunbird_sso_url: https://{}/auth@' charts/config/templates/configmap.yaml
+echo -n $1 | xargs -I '{}' sed -i -E 's@OAUTH2_RESOURCES_0_URI: .*@OAUTH2_RESOURCES_0_URI: https://{}/auth/realms/sunbird-rc@' charts/config/templates/configmap.yaml
